@@ -348,7 +348,7 @@ void TrojanMap::CreateGraphFromCSVFile() {
 void TrojanMap::PlotPoint(std::string id) {
   std::string image_path = cv::samples::findFile("src/lib/input.jpg");
   cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR);
-  auto result = GetPlotLocation(data[id].lat, data[id].lon);
+  auto result = GetPlotLocation(data[id].lat, data[id].lon);      //在CSV中根据ID定位data的lat和long
   cv::circle(img, cv::Point(result.first, result.second), DOT_SIZE,
              cv::Scalar(0, 0, 255), cv::FILLED);
   cv::imshow("TrojanMap", img);
@@ -528,7 +528,7 @@ std::pair<double, double> TrojanMap::GetPlotLocation(double lat, double lon) {
  * @return {double}         : latitude
  */
 double TrojanMap::GetLat(std::string id) {
-    return -1;
+    return data[id].lat;
 }
 
 
@@ -539,7 +539,7 @@ double TrojanMap::GetLat(std::string id) {
  * @return {double}         : longitude
  */
 double TrojanMap::GetLon(std::string id) { 
-    return -1;
+    return data[id].lon;
 }
 
 /**
@@ -549,7 +549,7 @@ double TrojanMap::GetLon(std::string id) {
  * @return {std::string}    : name
  */
 std::string TrojanMap::GetName(std::string id) { 
-    return "";
+    return data[id].name;
 }
 
 /**
@@ -559,7 +559,7 @@ std::string TrojanMap::GetName(std::string id) {
  * @return {std::vector<std::string>}  : neighbor ids
  */
 std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
-    return {};
+    return data[id].neighbors;
 }
 
 /**
@@ -617,7 +617,18 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name){
  * @return {std::pair<double,double>}  : (lat, lon)
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
-  std::pair<double, double> results(-1, -1);
+  std::pair<double, double> results(-1, -1);  //initialization
+  std::map<std::string, Node> it;     //create iterator with the same type of data
+  for(it=data.begin();it!=data.end();it++)
+  {
+    if(it->second.name == name)//if data node has the name matches input parameter
+    {   //pass the Node lat and lon to the output
+      results.first=it->second.lat;
+      results.second=it->second.lon;
+    } 
+  
+  }
+
   return results;
 }
 
@@ -629,7 +640,18 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
  */
 Node TrojanMap::GetNode(std::string name) {
   Node n;
-  n.id = "";
+  for(auto it = data.begin();it!=data.end();it++)
+  {
+    if(it->second.name == name)
+    {
+       n.id = it->second.id;
+       n.lat = it->second.lat;
+       n.long = it->second.lon;
+       n.name = it->second.name;
+       n.neighbors = it->second.neighbors;
+    }
+  }
+ 
   return n;
 }
 
