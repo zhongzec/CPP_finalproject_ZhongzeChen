@@ -528,7 +528,7 @@ std::pair<double, double> TrojanMap::GetPlotLocation(double lat, double lon) {
  * @return {double}         : latitude
  */
 double TrojanMap::GetLat(std::string id) {
-    return data[id].lat;
+    return data[id].lat;    //返回对应id的latitude
 }
 
 
@@ -539,7 +539,7 @@ double TrojanMap::GetLat(std::string id) {
  * @return {double}         : longitude
  */
 double TrojanMap::GetLon(std::string id) { 
-    return data[id].lon;
+    return data[id].lon;   //返回对应id的lon
 }
 
 /**
@@ -559,7 +559,7 @@ std::string TrojanMap::GetName(std::string id) {
  * @return {std::vector<std::string>}  : neighbor ids
  */
 std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
-    return data[id].neighbors;
+    return data[id].neighbors;  //返回对应id的neighbors
 }
 
 /**
@@ -642,7 +642,7 @@ Node TrojanMap::GetNode(std::string name) {
   Node n;
   for(auto it = data.begin();it!=data.end();it++)
   {
-    if(it->second.name == name)
+    if(it->second.name == name)   //如果csv中的name=输入，则将信息返回给node
     {
        n.id = it->second.id;
        n.lat = it->second.lat;
