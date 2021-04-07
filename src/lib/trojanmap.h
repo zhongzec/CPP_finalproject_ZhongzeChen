@@ -57,7 +57,7 @@ class TrojanMap {
   void PlotPointsOrder(std::vector<std::string> &location_ids);
 
   // Create the videos of the progress to get the path
-  void CreateAnimation(std::vector<std::vector<std::string>>);
+  void CreateAnimation(std::vector<std::vector<std::string> >);
 
   // Transform the location to the position on the map
   std::pair<double, double> GetPlotLocation(double lat, double lon);
@@ -104,12 +104,12 @@ class TrojanMap {
   
   // Given CSV filenames, it read and parse dependencise data from CSV file,
   // and return dependencies vector for topological sort problem.
-  std::vector<std::vector<std::string>> ReadDependenciesFromCSVFile(std::string dependencies_filename);
+  std::vector<std::vector<std::string> > ReadDependenciesFromCSVFile(std::string dependencies_filename);
 
   // Given a vector of location names, it should return a sorting of nodes
   // that satisfies the given dependencies.
   std::vector<std::string> DeliveringTrojan(std::vector<std::string> &location_names,
-                                            std::vector<std::vector<std::string>> &dependencies);
+                                            std::vector<std::vector<std::string> > &dependencies);
 
   // Given a vector of location ids, it should reorder them such that the path
   // that covers all these points has the minimum length.
@@ -117,11 +117,11 @@ class TrojanMap {
   // and the second member is the reordered vector of points.
   // (Notice that we don't find the optimal answer. You can return an estimated
   // path.)
-  std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan(
+  std::pair<double, std::vector<std::vector<std::string> > > TravellingTrojan(
       std::vector<std::string> &location_ids);
 
   
-  std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan_2opt(
+  std::pair<double, std::vector<std::vector<std::string> > > TravellingTrojan_2opt(
       std::vector<std::string> &location_ids);
 
   // Given a subgraph specified by a square-shape area, determine whether there is a

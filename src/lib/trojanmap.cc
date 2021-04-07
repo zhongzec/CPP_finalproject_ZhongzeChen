@@ -605,9 +605,50 @@ double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
  * @param  {std::string} name          : partial name
  * @return {std::vector<std::string>}  : a vector of full names
  */
+
+//用于autocomplete，忽略大小写，比较两个string
+bool iequals(const std::string& a, const std::string& b)
+{
+    unsigned int sz = a.size();
+    if (b.size() != sz)
+        return false;
+    for (unsigned int i = 0; i < sz; ++i)
+        if (tolower(a[i]) != tolower(b[i]))
+            return false;
+    return true;
+}
+
 std::vector<std::string> TrojanMap::Autocomplete(std::string name){
   std::vector<std::string> results;
+  int prefix_size = name.size();  //prefix length
+  
+  //first,check if input is empty
+  if(name.empty())
+  {
   return results;
+  std::cout<<"empty result"<<std::endl;
+  }
+
+  //else,check the prefix
+  else
+  {   
+    //auto it type -> map<string, Node> data in .h file
+    for(auto it=data.begin();it!=data.end();it++)
+    {
+    //在csv的name中截取和input长度相同的字母，放入temp中。
+    //ex:input=ch,则截取full name中的前两个字母
+    std::string temp = it->second.name.substr(0,prefix_size);//store prefix into temp
+    //std::cout<<"current value is "<<temp<<std::endl; //用来测试
+
+    if (iequals(temp, name))    //调用函数，忽略大小写
+    {
+    std::cout<<"find the match"<<std::endl;
+    results.push_back(it->second.name);
+    }
+    }
+    return results;
+  }
+  
 }
 
 /**
@@ -618,8 +659,8 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name){
  */
 std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   std::pair<double, double> results(-1, -1);  //initialization
-  std::map<std::string, Node> it;     //create iterator with the same type of data
-  for(it=data.begin();it!=data.end();it++)
+  //std::map<std::string, Node> it; create iterator with the same type of data
+  for(auto it=data.begin();it!=data.end();it++)
   {
     if(it->second.name == name)//if data node has the name matches input parameter
     {   //pass the Node lat and lon to the output
@@ -646,7 +687,7 @@ Node TrojanMap::GetNode(std::string name) {
     {
        n.id = it->second.id;
        n.lat = it->second.lat;
-       n.long = it->second.lon;
+       n.lon = it->second.lon;
        n.name = it->second.name;
        n.neighbors = it->second.neighbors;
     }
