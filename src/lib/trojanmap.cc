@@ -569,7 +569,7 @@ std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
  * @param  {Node} b  : node b
  * @return {double}  : distance in mile
  */
-double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
+double TrojanMap::CalculateDistance(const Node &a, const Node &b) { //node指的是data中string ID对应的node
   // Do not change this function
   // TODO: Use Haversine Formula:
   // dlon = lon2 - lon1;
@@ -595,6 +595,18 @@ double TrojanMap::CalculateDistance(const Node &a, const Node &b) {
  */
 double TrojanMap::CalculatePathLength(const std::vector<std::string> &path) {
   double sum = 0;
+  int numofplace = path.size();    //Num of places between two places
+  if (numofplace<=1)    
+  return 0;
+
+  else
+  {
+    for(int i=0;i<numofplace-1;i++)
+    sum = sum + CalculateDistance(data[path[i]],data[path[i+1]]); 
+    //分别计算相邻的string ID的distance，然后累加
+    //path[i] = string ID. data[path[i]]指data中对应的string ID的Node
+  }
+
   return sum;
 }
 
