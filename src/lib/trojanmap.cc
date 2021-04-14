@@ -570,7 +570,7 @@ std::vector<std::string> TrojanMap::GetNeighborIDs(std::string id) {
  * @return {double}  : distance in mile
  */
 double TrojanMap::CalculateDistance(const Node &a, const Node &b) { //node指的是data中string ID对应的node
-  // Do not change this function
+  // Do not change this function                                    //如：data["123"] 代表id=123对应的node
   // TODO: Use Haversine Formula:
   // dlon = lon2 - lon1;
   // dlat = lat2 - lat1;
@@ -691,6 +691,11 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
  * @param  {std::string} name          : location name
  * @return {Node}  : node
  */
+// Node::Node()
+// {
+//   id=""; name="";lat=0;lon=0;neighbors={""};
+// }
+
 Node TrojanMap::GetNode(std::string name) {
   Node n;
   for(auto it = data.begin();it!=data.end();it++)
@@ -708,6 +713,10 @@ Node TrojanMap::GetNode(std::string name) {
   return n;
 }
 
+
+
+
+
 /**
  * CalculateShortestPath_Dijkstra: Given 2 locations, return the shortest path which is a
  * list of id.
@@ -717,10 +726,42 @@ Node TrojanMap::GetNode(std::string name) {
  * @return {std::vector<std::string>}       : path
  */
 std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
-    std::string location1_name, std::string location2_name) {
-  std::vector<std::string> path;
-  return path;
+  std::string location1_name, std::string location2_name) 
+{
+//create adjacency matrix:outer vector is num of nodes, 
+//inner vector are the weights of a node between all its neigbours
+std::vector<std::vector<double> > weight (data.size(),std::vector<double> (INT16_MAX)); 
+
+std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
+std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
+auto it =data.begin();
+for(int i=0;i<data.size();i++)
+{
+  temp_id[i] = it->first;  //序号i存不同的id:ex temp[0]=id1,temp[1]=id2...
+  temp_index[it->first] = i;  //给每个id分配序号
+  it++;       //iterator定位到下一个id位置
 }
+
+  for(int i=0;i<data.size();i++) //weight bewteen the node itself = 0
+  {
+    weight[i][i] = 0;   
+
+//find the weight of each node between all its neigbour
+    for(auto j: data[temp_id[i]].neighbors) 
+    { 
+      weight[i][temp_index[j]] = CalculateDistance(data[temp_id[i]],data[j]); //datatemp_id[i]=当前node，data[j]=其所有neighbour
+      weight[temp_index[j]][i] = weight[i][temp_index[j]];  //adjacency matrix中两个node之间undirected，A->B=B->A
+    }
+  }
+
+} 
+
+
+
+
+
+
+
 
 /**
  * CalculateShortestPath_Bellman_Ford: Given 2 locations, return the shortest path which is a
