@@ -716,32 +716,8 @@ Node TrojanMap::GetNode(std::string name) {
 
 
 
-
-/**
- * CalculateShortestPath_Dijkstra: Given 2 locations, return the shortest path which is a
- * list of id.
- *
- * @param  {std::string} location1_name     : start
- * @param  {std::string} location2_name     : goal
- * @return {std::vector<std::string>}       : path
- */
-std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
-  std::string location1_name, std::string location2_name) 
-{
-//create adjacency matrix:outer vector is num of nodes, 
-//inner vector are the weights of a node between all its neigbours
-std::vector<std::vector<double> > weight (data.size(),std::vector<double> (INT16_MAX)); 
-
-std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
-std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
-auto it =data.begin();
-for(int i=0;i<data.size();i++)
-{
-  temp_id[i] = it->first;  //序号i存不同的id:ex temp[0]=id1,temp[1]=id2...
-  temp_index[it->first] = i;  //给每个id分配序号
-  it++;       //iterator定位到下一个id位置
-}
-
+void TrojanMap::weight_matrix(){
+  std::vector<std::vector<double> > weight (data.size(),std::vector<double> (INT16_MAX)); 
   for(int i=0;i<data.size();i++) //weight bewteen the node itself = 0
   {
     weight[i][i] = 0;   
@@ -753,7 +729,50 @@ for(int i=0;i<data.size();i++)
       weight[temp_index[j]][i] = weight[i][temp_index[j]];  //adjacency matrix中两个node之间undirected，A->B=B->A
     }
   }
+}
+/**
+ * CalculateShortestPath_Dijkstra: Given 2 locations, return the shortest path which is a
+ * list of id.
+ *
+ * @param  {std::string} location1_name     : start
+ * @param  {std::string} location2_name     : goal
+ * @return {std::vector<std::string>}       : path
+ */
+std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
+  std::string location1_name, std::string location2_name) 
+{
+//First, check if two input loactions exist
+Node n1 = GetNode(location1_name);
+Node n2 = GetNode(location2_name);
+std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
+if(n1.id==""||n2.id=="")
+{
+std::cout<<"invalid location"<<std::endl;   //测试
+return {""};
+}
 
+//If locations exist: 
+//create adjacency matrix:outer vector is num of nodes, 
+//inner vector are the weights of a node between all its neigbours
+std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
+std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
+auto it =data.begin();
+for(int i=0;i<data.size();i++)
+{
+  temp_id[i] = it->first;  //每个序号i对应的id:ex temp[0]=id1,temp[1]=id2...
+  temp_index[it->first] = i;  //每个id的序号
+  it++;       //iterator定位到下一个id位置
+}
+weight_matrix();
+std::unordered_set<int> visited;
+std::vector<long> d(weight.size());
+for(int i=0;i<weight.size();i++)
+{
+  d[i] = weight[temp_index[n1.id]][i];  // = weight[location1][i]
+}
+
+visited.insert(temp_index[n1.id]);  
+return {""};
 } 
 
 

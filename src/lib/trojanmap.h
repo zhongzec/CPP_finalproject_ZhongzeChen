@@ -25,6 +25,14 @@ class TrojanMap {
    // A map of ids to Nodes.
   std::map<std::string, Node> data;
   
+  //step3:Dijstra
+std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
+std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
+std::vector<std::vector<double> > weight;//weight matrix
+
+void weight_matrix();
+
+
   //-----------------------------------------------------
   // TODO: You do not and should not change the following functions:
 
@@ -74,7 +82,7 @@ class TrojanMap {
   std::string GetName(std::string id);
 
   // Get the Node given its name.
-  Node GetNode(std::string name);
+  Node GetNode (std::string name);
 
   // Get the neighbor ids of a Node.
   std::vector<std::string> GetNeighborIDs(std::string id);
