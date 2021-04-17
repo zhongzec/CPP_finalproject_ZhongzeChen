@@ -716,6 +716,30 @@ Node TrojanMap::GetNode(std::string name) {
 
 
 
+//step3: Dijstra
+int FindMinInDButNotInVisited(std::vector<long> &d,std::unordered_set<int> &visited)
+{
+  int min_node = -1;
+  int cur_dis = INT16_MAX;
+  int min_dis =INT16_MAX;
+  for(int i=0;i<d.size();i++)
+  {
+      auto it = visited.find(i);
+      if(it==visited.end())   //if node has not visited,else回到for loop
+      {                       
+        cur_dis = d[i];
+        if(cur_dis < min_dis) //如果source到该node的distance比之前的dis小，则更新
+        {                     //else,min不变
+          min_dis = cur_dis;
+          min_node = i;
+        }
+      }     
+  }
+  return min_node;    //如果返回-1，则说明source和dest没有任何路径
+}
+
+
+//step3: Dijstra
 void TrojanMap::weight_matrix(){
   std::vector<std::vector<double> > weight (data.size(),std::vector<double> (INT16_MAX)); 
   for(int i=0;i<data.size();i++) //weight bewteen the node itself = 0
@@ -730,6 +754,21 @@ void TrojanMap::weight_matrix(){
     }
   }
 }
+
+
+
+void create_path(std::vector<int> &path,std::vector<int> &parent,int node)
+{
+  if (parent[node] < 0)
+  {
+    return;
+  }
+  path.push_back(parent[node]);
+  create_path(path, parent, parent[node]);
+}
+
+
+
 /**
  * CalculateShortestPath_Dijkstra: Given 2 locations, return the shortest path which is a
  * list of id.
@@ -756,6 +795,9 @@ return {""};
 //inner vector are the weights of a node between all its neigbours
 std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
 std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
+std::vector<int> parent; //存最短path中destination node的所有parent node
+
+int min_node;
 auto it =data.begin();
 for(int i=0;i<data.size();i++)
 {
@@ -763,16 +805,43 @@ for(int i=0;i<data.size();i++)
   temp_index[it->first] = i;  //每个id的序号
   it++;       //iterator定位到下一个id位置
 }
-weight_matrix();
+weight_matrix();  //相邻node的weight。不相邻的node：weight=max
 std::unordered_set<int> visited;
 std::vector<long> d(weight.size());
 for(int i=0;i<weight.size();i++)
-{
-  d[i] = weight[temp_index[n1.id]][i];  // = weight[location1][i]
-}
+  {
+  d[i] = weight[temp_index[n1.id]][i];  //source node到每个node的distance。此处，和source不相邻的node的weight=max
+  }
 
 visited.insert(temp_index[n1.id]);  
-return {""};
+while(visited.size()<weight.size() && min_node!=-1 && visited.find(temp_index[n2.id])==visited.end())   
+  {
+    //访问unvisited的node，比较source到每个node的距离，找到最短距离的node
+    min_node = FindMinInDButNotInVisited(d,visited);  
+    visited.insert(min_node);
+    for(int i=0;i<data.size();i++)  //check if source node can reach new node through its neighbor node
+    { 
+      //if so,then update the distance to d
+      {
+      if(d[min_node] + weight[min_node][i] < d[i])  
+        d[i] = d[min_node]+weight[min_node][i];
+        parent[i] = min_node;   //将该node的parent node存起来
+      }
+//ex: lec7图:if minnode=6,if node0->node3的距离(因为不相邻所以初始=max）小于node0->5->6->3，则更新node0->3的距离  
+    }
+  }
+  //check if the destination node has been visited
+  if(visited.find(temp_index[n2.id]) == visited.end()) //if not visited, then there is no path btw two nodes
+  return {""};
+
+  //if found dest node,search for the path btw source an dest node
+  std::vector<int> path;  //按dest到source顺序存最短路径的node
+  path.push_back(temp_index[n2.id]);
+  create_path(path,parent,temp_index[n2.id]);
+
+
+
+  return {""};
 } 
 
 
