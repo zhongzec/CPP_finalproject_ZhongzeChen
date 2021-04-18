@@ -6,7 +6,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
+#include <unordered_map>
 // A Node is the location of one point in the map.
 class Node {
   public:
@@ -26,8 +26,8 @@ class TrojanMap {
   std::map<std::string, Node> data;
   
   //step3:Dijstra
-std::map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
-std::map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
+std::unordered_map<int,std::string> temp_id; //通过序号定位其id。ex：temp[0]=id0,temp[1]=id1
+std::unordered_map<std::string,int> temp_index; //通过id定位其序号.ex:temp[id8]=8
 std::vector<std::vector<double> > weight;//weight matrix
 
 void weight_matrix();
