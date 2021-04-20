@@ -128,7 +128,8 @@ void TrojanMap::PrintMenu() {
     std::string input2;
     getline(std::cin, input2);
     auto start = std::chrono::high_resolution_clock::now();
-    auto results = CalculateShortestPath_Dijkstra(input1, input2);
+    //auto results = CalculateShortestPath_Dijkstra(input1, input2);
+    auto results = CalculateShortestPath_Bellman_Ford(input1, input2);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     menu = "*************************Results******************************\n";
@@ -654,7 +655,7 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name){
 
     if (iequals(temp, name))    //调用函数，忽略大小写
     {
-    std::cout<<"find the match"<<std::endl;
+    //std::cout<<"find the match"<<std::endl;
     results.push_back(it->second.name);
     }
     }
@@ -746,7 +747,7 @@ int FindMinInDButNotInVisited(std::vector<double> &d,std::unordered_set<int> &vi
 //step3: Dijstra
 void TrojanMap::weight_matrix(){
   weight =std::vector<std::vector<double> >(data.size(),std::vector<double>(data.size(),INT_MAX)); 
-  std::cout<<"check2"<<std::endl;
+  //std::cout<<"check2"<<std::endl;
   for(int i=0;i<data.size();i++) //weight bewteen the node itself = 0
   {
     weight[i][i] = 0;   
@@ -788,7 +789,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
 //First, check if two input loactions exist
 Node n1 = GetNode(location1_name);
 Node n2 = GetNode(location2_name);
-std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
+//std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
 if(n1.id==""||n2.id=="")
 {
 std::cout<<"invalid location"<<std::endl;   //测试
@@ -876,8 +877,96 @@ while(visited.size()<weight.size() && !uncheck && visited.find(temp_index[n2.id]
  */
 std::vector<std::string> TrojanMap::CalculateShortestPath_Bellman_Ford(
     std::string location1_name, std::string location2_name){
-  std::vector<std::string> path;
-  return path;
+  //std::vector<std::string> path;
+
+
+//First, check if two input loactions exist
+Node n1 = GetNode(location1_name);
+Node n2 = GetNode(location2_name);
+//std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
+if(n1.id==""||n2.id=="")
+{
+std::cout<<"invalid location"<<std::endl;   //测试
+return {""};
+}
+
+//If locations exist: 
+auto it =data.begin();
+for(int i=0;i<data.size();i++)
+{
+  temp_id[i] = it->first;  
+  temp_index[it->first] = i;  
+  it++;       //iterator定位到下一个id位置
+}
+ weight_matrix();  //相邻node的weight。不相邻的node：weight=max
+std::vector<int> parent(data.size(), -1); //存最短path中destination node的所有parent node
+std::vector<double> d(weight.size()); //1D table
+std::vector<int> path;  //按dest到source顺序存最短路径的node
+
+//std::cout<<"weight size is"<<weight.size()<<std::endl;
+for(int i=0;i<weight.size();i++)
+  {    
+  d[i] = weight[temp_index[n1.id]][i];  //source node到每个node的distance。此处，和source不相邻的node的weight=max
+  }
+// visited.insert(temp_index[n1.id]);  //先存source node
+d[temp_index[n1.id]] = 0;   //source node to itself distance = 0 
+
+for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so only 1 edge exist
+{ 
+  //find total number of edges of certain nodes
+  for(int v=0;v<weight.size();v++)  //iterate all nodes,then find the incoming edges of these nodes
+  {
+    for(int u=0;u<weight.size();u++)
+    {
+      //  if(i<5)
+      //   std::cout<<"check 1"<<std::endl;   //测试
+      if(d[v]+weight[v][u] < d[u])
+      {
+        d[u] = d[v]+weight[v][u];
+        parent[u] = v;
+      }
+    }            
+  }
+}
+  // if(d[temp_index[n2.id]]==INT_MAX)
+  // return {""};
+
+  // path.push_back(temp_index[n2.id]);  //首先将dest node传进去
+  // create_path(path,parent,temp_index[n2.id]);   //按照dest->source顺序存parent nodes
+  // path.push_back(temp_index[n1.id]);    //最后加上source node
+
+  // //当前path vector是{dest,....source}，所以要reverse
+  // reverse(path.begin(), path.end());
+  // //path存着node的序号，转化为对应的string id
+  //  std::vector<std::string> path_output;
+  // for(int i=0;i<path.size();i++)
+  // {  
+  //   path_output.push_back(temp_id[path[i]]);
+  // }
+    
+
+  // return path_output;
+
+std::vector<std::string> x;
+
+  if(d[temp_index[n2.id]] == INT_MAX) { //not reachable so return empty vector
+    return x;
+  }
+
+  path.push_back(temp_index[n2.id]);
+
+  create_path(path, parent, temp_index[n2.id]);
+
+  x.push_back(n1.id);
+
+  for (int i = path.size() - 1; i >= 0; i--)
+  {
+    x.push_back(temp_id[path[i]]);
+  }
+
+  return x;
+
+ //return path;
 }
 
 /**
