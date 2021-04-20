@@ -128,8 +128,10 @@ void TrojanMap::PrintMenu() {
     std::string input2;
     getline(std::cin, input2);
     auto start = std::chrono::high_resolution_clock::now();
-    //auto results = CalculateShortestPath_Dijkstra(input1, input2);
-    auto results = CalculateShortestPath_Bellman_Ford(input1, input2);
+    auto results = CalculateShortestPath_Dijkstra(input1, input2);
+    
+    //you can uncomment it to test Bellman. It will take 3-5 min to show the result!!!!!!!!!
+    //auto results = CalculateShortestPath_Bellman_Ford(input1, input2);  
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     menu = "*************************Results******************************\n";
@@ -790,7 +792,7 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
 Node n1 = GetNode(location1_name);
 Node n2 = GetNode(location2_name);
 //std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
-if(n1.id==""||n2.id=="")
+if(n1.id==""||n2.id==""||n1.id==n2.id)
 {
 std::cout<<"invalid location"<<std::endl;   //测试
 return {""};
@@ -879,18 +881,18 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Bellman_Ford(
     std::string location1_name, std::string location2_name){
   //std::vector<std::string> path;
 
-
 //First, check if two input loactions exist
 Node n1 = GetNode(location1_name);
 Node n2 = GetNode(location2_name);
 //std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
-if(n1.id==""||n2.id=="")
+if(n1.id==""||n2.id==""||n1.id==n2.id)
 {
 std::cout<<"invalid location"<<std::endl;   //测试
 return {""};
 }
 
 //If locations exist: 
+std::cout<<"Running Bellman will take 3-5 minutes to show the result!Please wait"<<std::endl;
 auto it =data.begin();
 for(int i=0;i<data.size();i++)
 {
@@ -928,45 +930,25 @@ for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so
     }            
   }
 }
-  // if(d[temp_index[n2.id]]==INT_MAX)
-  // return {""};
+  if(d[temp_index[n2.id]]==INT_MAX)
+  return {""};
 
-  // path.push_back(temp_index[n2.id]);  //首先将dest node传进去
-  // create_path(path,parent,temp_index[n2.id]);   //按照dest->source顺序存parent nodes
-  // path.push_back(temp_index[n1.id]);    //最后加上source node
+  path.push_back(temp_index[n2.id]);  //首先将dest node传进去
+  create_path(path,parent,temp_index[n2.id]);   //按照dest->source顺序存parent nodes
+  path.push_back(temp_index[n1.id]);    //最后加上source node
 
-  // //当前path vector是{dest,....source}，所以要reverse
-  // reverse(path.begin(), path.end());
-  // //path存着node的序号，转化为对应的string id
-  //  std::vector<std::string> path_output;
-  // for(int i=0;i<path.size();i++)
-  // {  
-  //   path_output.push_back(temp_id[path[i]]);
-  // }
+  //当前path vector是{dest,....source}，所以要reverse
+  reverse(path.begin(), path.end());
+  //path存着node的序号，转化为对应的string id
+   std::vector<std::string> path_output;
+  for(int i=0;i<path.size();i++)
+  {  
+    path_output.push_back(temp_id[path[i]]);
+  }
     
 
   // return path_output;
 
-std::vector<std::string> x;
-
-  if(d[temp_index[n2.id]] == INT_MAX) { //not reachable so return empty vector
-    return x;
-  }
-
-  path.push_back(temp_index[n2.id]);
-
-  create_path(path, parent, temp_index[n2.id]);
-
-  x.push_back(n1.id);
-
-  for (int i = path.size() - 1; i >= 0; i--)
-  {
-    x.push_back(temp_id[path[i]]);
-  }
-
-  return x;
-
- //return path;
 }
 
 /**
