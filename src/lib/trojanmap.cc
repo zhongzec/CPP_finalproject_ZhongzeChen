@@ -858,8 +858,6 @@ while(visited.size()<weight.size() && !uncheck && visited.find(temp_index[n2.id]
     
 
   return path_output;
-
-
 } 
 
 
@@ -945,11 +943,93 @@ for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so
   {  
     path_output.push_back(temp_id[path[i]]);
   }
-    
-
-  // return path_output;
+  
+ return path_output;
 
 }
+
+
+
+
+//step4: Brute force helper function
+void TrojanMap::permute(std::vector<std::string> &location_ids, std::vector<std::vector<std::string> > &result,
+std::vector<std::string> &curResult)           //curRersult = curpath
+{
+  //First, check if curpath amount = location_ids amount
+  if(curResult.size()==location_ids.size())
+  {
+    result.push_back(curResult);
+    return;
+  }
+
+//else, generate the curpath
+for(int i=0;i<location_ids.size();i++)
+{
+  //if current id was found before, then find the next id
+  if(find(curResult.begin(),curResult.end(),location_ids[i]) != curResult.end())
+  continue;
+
+  //else,add this id into the curpath
+  curResult.push_back(location_ids[i]);   
+  //if the curpath is smaller, then keep searching new node
+  if(CalculatePathLength(curResult) < CalculatePathLength(location_ids))    
+  {
+  permute(location_ids,result,curResult);
+  }
+  //after finished the path, or the curpath is bigger, then pop out the curnode, then goes to the next node
+  curResult.pop_back();
+  } 
+}
+/**
+ * Travelling salesman problem: Given a list of locations, return the shortest
+ * path which visit all the places and back to the start point.
+ *
+ * @param  {std::vector<std::string>} input : a list of locations needs to visit
+ * @return {std::pair<double, std::vector<std::vector<std::string>>} : a pair of total distance and the all the progress to get final path
+ */
+std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan(
+                                    std::vector<std::string> &location_ids) {
+  std::pair<double, std::vector<std::vector<std::string>>> results;
+  std::vector<std::string> curResult;
+  double minpath = INT_MAX;
+  int min = 0;
+  permute(location_ids,results.second,curResult);
+  //find the min path
+  for(int i=0;i<results.second.size();i++)
+  {
+    results.second[i].push_back(location_ids[0]);   //存每条path终点=source node
+    if(CalculatePathLength(results.second[i]) < minpath && results.second[i][0] == location_ids[0])
+    {
+      minpath = CalculatePathLength(results.second[i]);
+      min = i;
+    }
+  }
+  results.first = minpath;
+  std::cout<<"sadfsda"<<std::endl;
+  results.second[min].swap(results.second[results.second.size()-1]);     //for TA's test 
+  return results;
+}
+
+
+
+
+
+
+
+
+std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan_2opt(
+      std::vector<std::string> &location_ids){
+  std::pair<double, std::vector<std::vector<std::string>>> results;
+  return results;
+}
+
+
+
+
+
+
+
+
 
 /**
  * Given CSV filename, it read and parse locations data from CSV file,
@@ -989,24 +1069,10 @@ std::vector<std::string> TrojanMap::DeliveringTrojan(std::vector<std::string> &l
   return result;                                                     
 }
 
-/**
- * Travelling salesman problem: Given a list of locations, return the shortest
- * path which visit all the places and back to the start point.
- *
- * @param  {std::vector<std::string>} input : a list of locations needs to visit
- * @return {std::pair<double, std::vector<std::vector<std::string>>} : a pair of total distance and the all the progress to get final path
- */
-std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan(
-                                    std::vector<std::string> &location_ids) {
-  std::pair<double, std::vector<std::vector<std::string>>> results;
-  return results;
-}
 
-std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan_2opt(
-      std::vector<std::string> &location_ids){
-  std::pair<double, std::vector<std::vector<std::string>>> results;
-  return results;
-}
+
+
+
 
 /**
  * Cycle Detection: Given four points of the square-shape subgraph, return true if there

@@ -32,6 +32,9 @@ std::vector<std::vector<double> > weight;//weight matrix
 
 void weight_matrix();
 
+//step4:brute force
+void permute(std::vector<std::string> &location_ids, std::vector<std::vector<std::string> > &result,
+std::vector<std::string> &curResult);
 
   //-----------------------------------------------------
   // TODO: You do not and should not change the following functions:
