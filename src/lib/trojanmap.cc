@@ -955,6 +955,8 @@ for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so
 void TrojanMap::permute(std::vector<std::string> &location_ids, std::vector<std::vector<std::string> > &result,
 std::vector<std::string> &curResult)           //curRersult = curpath
 {
+  double curpath = CalculatePathLength(location_ids);
+
   //First, check if curpath amount = location_ids amount
   if(curResult.size()==location_ids.size())
   {
@@ -972,7 +974,7 @@ for(int i=0;i<location_ids.size();i++)
   //else,add this id into the curpath
   curResult.push_back(location_ids[i]);   
   //if the curpath is equal or smaller, then keep searching new node
-  if(CalculatePathLength(curResult) <= CalculatePathLength(location_ids))    
+  if(CalculatePathLength(curResult) <= curpath)    
   {
   permute(location_ids,result,curResult);
   }
