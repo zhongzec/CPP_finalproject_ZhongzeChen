@@ -36,6 +36,10 @@ void weight_matrix();
 void permute(std::vector<std::string> &location_ids, std::vector<std::vector<std::string> > &result,
 std::vector<std::string> &curResult);
 
+//step 4: 2opt
+  void TSP2HELP(std::vector<std::vector<std::string> > &result, std::vector<std::string> &curResults,double minD);
+
+
   //-----------------------------------------------------
   // TODO: You do not and should not change the following functions:
 
@@ -134,7 +138,8 @@ std::vector<std::string> &curResult);
   
   std::pair<double, std::vector<std::vector<std::string> > > TravellingTrojan_2opt(
       std::vector<std::string> &location_ids);
-
+  
+  
   // Given a subgraph specified by a square-shape area, determine whether there is a
   // cycle or not in this subgraph.
   // vector square has 4 elements: left/right/top/bottom bound in order.

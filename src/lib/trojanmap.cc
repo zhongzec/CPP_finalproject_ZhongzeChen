@@ -174,7 +174,8 @@ void TrojanMap::PrintMenu() {
     PlotPoints(locations);
     std::cout << "Calculating ..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    auto results = TravellingTrojan(locations);
+    //auto results = TravellingTrojan(locations);
+    auto results = TravellingTrojan_2opt(locations);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     CreateAnimation(results.second);
@@ -655,9 +656,8 @@ std::vector<std::string> TrojanMap::Autocomplete(std::string name){
     std::string temp = it->second.name.substr(0,prefix_size);//store prefix into temp
     //std::cout<<"current value is "<<temp<<std::endl; //用来测试
 
-    if (iequals(temp, name))    //调用函数，忽略大小写
+    if (iequals(temp, name))            //调用函数，忽略大小写
     {
-    //std::cout<<"find the match"<<std::endl;
     results.push_back(it->second.name);
     }
     }
@@ -677,14 +677,13 @@ std::pair<double, double> TrojanMap::GetPosition(std::string name) {
   //std::map<std::string, Node> it; create iterator with the same type of data
   for(auto it=data.begin();it!=data.end();it++)
   {
-    if(it->second.name == name)//if data node has the name matches input parameter
-    {   //pass the Node lat and lon to the output
+    if(it->second.name == name)                     //if data node has the name matches input parameter
+    {                                               //pass the Node lat and lon to the output
       results.first=it->second.lat;
       results.second=it->second.lon;
     } 
   
   }
-
   return results;
 }
 
@@ -791,10 +790,9 @@ std::vector<std::string> TrojanMap::CalculateShortestPath_Dijkstra(
 //First, check if two input loactions exist
 Node n1 = GetNode(location1_name);
 Node n2 = GetNode(location2_name);
-//std::cout<<"n1 is "<<n1.id<<" n2 is "<<n2.id<<std::endl;  //测试
 if(n1.id==""||n2.id==""||n1.id==n2.id)
 {
-std::cout<<"invalid location"<<std::endl;   //测试
+std::cout<<"invalid location"<<std::endl;   //test
 return {""};
 }
 
@@ -951,7 +949,7 @@ for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so
 
 
 
-//step4: Brute force helper function
+//step4: Brute force helper function: permuate all the path
 void TrojanMap::permute(std::vector<std::string> &location_ids, std::vector<std::vector<std::string> > &result,
 std::vector<std::string> &curResult)           //curRersult = curpath
 {
@@ -996,11 +994,12 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
   std::vector<std::string> curResult;
   double minpath = INT_MAX;
   int min = 0;
-  if(location_ids.size() == 0) 
+  if(location_ids.size() == 0)    //if place = 0, then no shortest path
     return {0, {}};
-  if(location_ids.size() == 1) 
+  if(location_ids.size() == 1)    //if place = itself, then return itself
     return {0, {location_ids}};
 
+//else, find all the path from source to places and go back to source
   permute(location_ids,results.second,curResult);
   //find the min path
   for(int i=0;i<results.second.size();i++)
@@ -1013,7 +1012,6 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
     }
   }
   results.first = minpath;
-  std::cout<<"sadfsda"<<std::endl;
   results.second[min].swap(results.second[results.second.size()-1]);     //for TA's test 
   return results;
 }
@@ -1021,15 +1019,64 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
 
 
 
-std::pair<double, std::vector<std::vector<std::string>>> TravellingTrojan_2opt(
-      std::vector<std::string> &location_ids){
-  std::pair<double, std::vector<std::vector<std::string>>> results;
-  return results;
+
+void TrojanMap::TSP2HELP(std::vector<std::vector<std::string>> &result,
+                          std::vector<std::string> &tempResult,
+                          double minD)
+{                                        //at the very begining, tempResult = location_ids path
+if(minD<=CalculatePathLength(tempResult))
+return;
+
+else
+  {
+  std::vector<std::string> nextResult;
+  for(int i=1;i<tempResult.size()-1;i++) //swap的第一个node，ex：共0-7个node，then从node1-6
+  {    
+    for(int j=i+1;j<tempResult.size();j++)  //swap的第二个node,从node2-7
+    { 
+      nextResult = tempResult;
+      //2opt method:reverse the order btw swapped nodes
+      std::reverse(nextResult.begin()+i,nextResult.begin()+j+1);  
+      //if current path is smaller, then push this path to the result. If larger, then ignore
+      if(find(result.begin(),result.end(),nextResult) == result.end()
+        && CalculatePathLength(nextResult) < CalculatePathLength(tempResult)) 
+        {
+          result.push_back(nextResult);
+          TSP2HELP(result,nextResult,CalculatePathLength(tempResult));
+        }
+      }
+    }
+  }
 }
 
 
 
+std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan_2opt(
+      std::vector<std::string> &location_ids){
+  std::pair<double, std::vector<std::vector<std::string> > > results;
 
+ if(location_ids.size() == 0)    //if place = 0, then no shortest path
+    return {0, {}};
+  if(location_ids.size() == 1)    //if place = itself, then return itself
+    return {0, {location_ids}};
+
+  results.second.push_back(location_ids);   //将原始的path放进result
+  double minD = INT_MAX;                    //初始化min distance
+  int minIndex = 0;
+  TSP2HELP(results.second,location_ids,minD);   //2opt method
+  for(int i=0;i<results.second.size();i++){
+    std::cout<<"minD is "<<minD<<std::endl;
+    results.second[i].push_back(location_ids[0]);   //将source node加在每个path前
+    if(minD>CalculatePathLength(results.second[i])){
+      minD = CalculatePathLength(results.second[i]);
+      minIndex = i;
+    }
+  }
+  results.first = minD;
+  results.second[results.second.size()-1].swap(results.second[minIndex]);
+  
+  return results;                            
+}
 
 
 
