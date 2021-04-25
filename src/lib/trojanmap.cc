@@ -1065,9 +1065,8 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
   int minIndex = 0;
   TSP2HELP(results.second,location_ids,minD);   //2opt method
   for(int i=0;i<results.second.size();i++){
-    std::cout<<"minD is "<<minD<<std::endl;
     results.second[i].push_back(location_ids[0]);   //将source node加在每个path前
-    if(minD>CalculatePathLength(results.second[i])){
+    if(CalculatePathLength(results.second[i]) < minD){
       minD = CalculatePathLength(results.second[i]);
       minIndex = i;
     }

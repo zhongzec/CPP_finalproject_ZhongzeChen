@@ -37,7 +37,7 @@ void permute(std::vector<std::string> &location_ids, std::vector<std::vector<std
 std::vector<std::string> &curResult);
 
 //step 4: 2opt
-  void TSP2HELP(std::vector<std::vector<std::string> > &result, std::vector<std::string> &curResults,double minD);
+  void TSP2HELP(std::vector<std::vector<std::string> > &result, std::vector<std::string> &tempResults,double minD);
 
 
   //-----------------------------------------------------
