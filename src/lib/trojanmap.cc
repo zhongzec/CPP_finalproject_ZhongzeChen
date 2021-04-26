@@ -1045,7 +1045,7 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
 //         new_route[c] = route[c];
 //     }
 //     return new_route;
-// }
+//}
 
 
 std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan_2opt(
@@ -1070,23 +1070,24 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
         {
             for ( int k = i + 1; k < location_ids.size() - 1; k++)
             {
-                std::vector<std::string> new_route = TwoOptSwap(exist_route,i,k);    //return a new path after swap
- 
-                double new_distance = CalculatePathLength(new_route);
+              //std::vector<std::string> new_route = TwoOptSwap(exist_route,i,k);
+              std::vector<std::string> nextResult = current_best_route;
+              std::reverse(nextResult.begin()+i,nextResult.begin()+k+1);
+                double new_distance = CalculatePathLength(nextResult);
  
                 if ( new_distance < best_distance )
                 {
                     // Improvement found so reset
                     improve = true;
                     best_distance = new_distance;
-                    current_best_route = new_route;
-                    results.second.push_back(current_best_route);
+                    current_best_route = nextResult;
+                    results.second.push_back(current_best_route); //每次找到smaller path，将cur best route放进result中
                 }
             }
         }
         exist_route = current_best_route;
     }
-    results.first = best_distance;
+    results.first = best_distance;    //最后再把min distance放进result
 
     return results;                            
 }
