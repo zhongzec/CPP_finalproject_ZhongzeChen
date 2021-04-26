@@ -1022,32 +1022,6 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
 
 
 
-// std::vector<std::string> TrojanMap::TwoOptSwap(std::vector<std::string> &route, int &i, int &k )
-// {
-//   //route = exist_route.  
-//   int size = route.size();  
-//   std::vector<std::string> new_route(size);
-//     // 1. take route[0] to route[i-1] and add them in order to new_route
-//     for ( int c = 0; c <= i - 1; ++c )
-//     {
-//       new_route[c] = route[c];
-//     }
-//     // 2. take route[i] to route[k] and add them in reverse order to new_route
-//     int dec = 0;
-//     for ( int c = i; c <= k; ++c )
-//     {
-//       new_route[c] = route[k-dec];
-//       dec++;
-//     }
-//     // 3. take route[k+1] to end and add them in order to new_route
-//     for ( int c = k + 1; c < size; ++c )
-//     {
-//         new_route[c] = route[c];
-//     }
-//     return new_route;
-//}
-
-
 std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan_2opt(
       std::vector<std::string> &location_ids){
     std::pair<double, std::vector<std::vector<std::string> > > results;
