@@ -37,8 +37,7 @@ void permute(std::vector<std::string> &location_ids, std::vector<std::vector<std
 std::vector<std::string> &curResult);
 
 //step 4: 2opt
-  void TSP2HELP(std::vector<std::vector<std::string> > &result, std::vector<std::string> &tempResults,double minD);
-
+std::vector<std::string> TwoOptSwap(std::vector<std::string> &route, int &i, int &k );
 
   //-----------------------------------------------------
   // TODO: You do not and should not change the following functions:

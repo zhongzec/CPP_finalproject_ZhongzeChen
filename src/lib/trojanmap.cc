@@ -1020,61 +1020,75 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
 
 
 
-void TrojanMap::TSP2HELP(std::vector<std::vector<std::string>> &result,
-                          std::vector<std::string> &tempResult,
-                          double minD)
-{                                        //at the very begining, tempResult = location_ids path
-if(minD<=CalculatePathLength(tempResult))
-return;
 
-else
-  {
-  std::vector<std::string> nextResult;
-  for(int i=1;i<tempResult.size()-1;i++) //swap的第一个node，ex：共0-7个node，then从node1-6
-  {    
-    for(int j=i+1;j<tempResult.size();j++)  //swap的第二个node,从node2-7
-    { 
-      nextResult = tempResult;
-      //2opt method:reverse the order btw swapped nodes
-      std::reverse(nextResult.begin()+i,nextResult.begin()+j+1);  
-      //if current path is smaller, then push this path to the result. If larger, then ignore
-      if(find(result.begin(),result.end(),nextResult) == result.end()
-        && CalculatePathLength(nextResult) < CalculatePathLength(tempResult)) 
-        {
-          result.push_back(nextResult);
-          TSP2HELP(result,nextResult,CalculatePathLength(tempResult));
-        }
-      }
+
+std::vector<std::string> TrojanMap::TwoOptSwap(std::vector<std::string> &route, int &i, int &k )
+{
+  //route = exist_route.  
+  int size = route.size();  
+  std::vector<std::string> new_route(size);
+    // 1. take route[0] to route[i-1] and add them in order to new_route
+    for ( int c = 0; c <= i - 1; ++c )
+    {
+      new_route[c] = route[c];
     }
-  }
+    // 2. take route[i] to route[k] and add them in reverse order to new_route
+    int dec = 0;
+    for ( int c = i; c <= k; ++c )
+    {
+      new_route[c] = route[k-dec];
+      dec++;
+    }
+    // 3. take route[k+1] to end and add them in order to new_route
+    for ( int c = k + 1; c < size; ++c )
+    {
+        new_route[c] = route[c];
+    }
+    return new_route;
 }
-
 
 
 std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTrojan_2opt(
       std::vector<std::string> &location_ids){
-  std::pair<double, std::vector<std::vector<std::string> > > results;
+    std::pair<double, std::vector<std::vector<std::string> > > results;
+    if(location_ids.size() == 0)    //if place = 0, then no shortest path
+      return {0, {}};
+    if(location_ids.size() == 1)    //if place = itself, then return itself
+      return {0, {location_ids}};
 
- if(location_ids.size() == 0)    //if place = 0, then no shortest path
-    return {0, {}};
-  if(location_ids.size() == 1)    //if place = itself, then return itself
-    return {0, {location_ids}};
+    bool improve = true;
+    std::vector<std::string> exist_route = location_ids;
+    exist_route.push_back(location_ids[0]);   //每条path终点=source node
+    std::vector<std::string>  current_best_route = exist_route;
+    results.second.push_back(exist_route);
+    double best_distance = CalculatePathLength(exist_route);
 
-  results.second.push_back(location_ids);   //将原始的path放进result
-  double minD = INT_MAX;                    //初始化min distance
-  int minIndex = 0;
-  TSP2HELP(results.second,location_ids,minD);   //2opt method
-  for(int i=0;i<results.second.size();i++){
-    results.second[i].push_back(location_ids[0]);   //将source node加在每个path前
-    if(CalculatePathLength(results.second[i]) < minD){
-      minD = CalculatePathLength(results.second[i]);
-      minIndex = i;
+    while ( improve )
+    {
+      improve = false;
+        for ( int i = 1; i < location_ids.size() - 2; i++ )
+        {
+            for ( int k = i + 1; k < location_ids.size() - 1; k++)
+            {
+                std::vector<std::string> new_route = TwoOptSwap(exist_route,i,k);    //return a new path after swap
+ 
+                double new_distance = CalculatePathLength(new_route);
+ 
+                if ( new_distance < best_distance )
+                {
+                    // Improvement found so reset
+                    improve = true;
+                    best_distance = new_distance;
+                    current_best_route = new_route;
+                    results.second.push_back(current_best_route);
+                }
+            }
+        }
+        exist_route = current_best_route;
     }
-  }
-  results.first = minD;
-  results.second[results.second.size()-1].swap(results.second[minIndex]);
-  
-  return results;                            
+    results.first = best_distance;
+
+    return results;                            
 }
 
 
