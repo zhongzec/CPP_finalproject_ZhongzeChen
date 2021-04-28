@@ -174,8 +174,8 @@ void TrojanMap::PrintMenu() {
     PlotPoints(locations);
     std::cout << "Calculating ..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
-    //auto results = TravellingTrojan(locations);
-    auto results = TravellingTrojan_2opt(locations);
+    auto results = TravellingTrojan(locations);
+    //auto results = TravellingTrojan_2opt(locations);
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     CreateAnimation(results.second);
@@ -725,7 +725,7 @@ int FindMinInDButNotInVisited(std::vector<double> &d,std::unordered_set<int> &vi
 {
   int min_node;
   double min_dis =INT_MAX;
-  for(int i=0;i<d.size();i++)
+  for(int i=0;i<d.size();i++)   //O(n)
   {
       auto it = visited.find(i);
       if(it==visited.end())   //if node has not visited,else回到for loop
@@ -911,10 +911,10 @@ d[temp_index[n1.id]] = 0;   //source node to itself distance = 0
 
 for(int i=0;i<weight.size()-1;i++)  //iterate 0->n-1 edges情况 EX:n=2 nodes,so only 1 edge exist
 { 
-  //find total number of edges of certain nodes
-  for(int v=0;v<weight.size();v++)  //iterate all nodes,then find the incoming edges of these nodes
+  //find total no of edges of certain nodes. no of edges = m
+  for(int v=0;v<weight.size();v++)  //iterate all nodes
   {
-    for(int u=0;u<weight.size();u++)
+    for(int u=0;u<weight.size();u++)  //then find the incoming edges of these nodes
     {
       //  if(i<5)
       //   std::cout<<"check 1"<<std::endl;   //测试
@@ -1030,21 +1030,20 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
     if(location_ids.size() == 1)    //if place = itself, then return itself
       return {0, {location_ids}};
 
-    bool improve = true;
+    bool update = true;
     std::vector<std::string> exist_route = location_ids;
     exist_route.push_back(location_ids[0]);   //每条path终点=source node
     std::vector<std::string>  current_best_route = exist_route;
     results.second.push_back(exist_route);
     double best_distance = CalculatePathLength(exist_route);
 
-    while ( improve )
+    while (update)
     {
-      improve = false;
+      update = false;
         for ( int i = 1; i < location_ids.size() - 2; i++ )
         {
             for ( int k = i + 1; k < location_ids.size() - 1; k++)
             {
-              //std::vector<std::string> new_route = TwoOptSwap(exist_route,i,k);
               std::vector<std::string> nextResult = current_best_route;
               std::reverse(nextResult.begin()+i,nextResult.begin()+k+1);
                 double new_distance = CalculatePathLength(nextResult);
@@ -1052,7 +1051,7 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
                 if ( new_distance < best_distance )
                 {
                     // Improvement found so reset
-                    improve = true;
+                    update = true;
                     best_distance = new_distance;
                     current_best_route = nextResult;
                     results.second.push_back(current_best_route); //每次找到smaller path，将cur best route放进result中
@@ -1079,6 +1078,16 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
  */
 std::vector<std::string> TrojanMap::ReadLocationsFromCSVFile(std::string locations_filename){
   std::vector<std::string> location_names_from_csv;
+  std::fstream fin;
+  fin.open(locations_filename,std::ios::in);
+  std::string line, word;
+  getline(fin,line);
+  while(getline(fin,line)){
+    std::stringstream s(line);
+    while(getline(s,word,',')){
+      location_names_from_csv.push_back(word);
+    }
+  }
   return location_names_from_csv;
 }
 
@@ -1091,6 +1100,18 @@ std::vector<std::string> TrojanMap::ReadLocationsFromCSVFile(std::string locatio
  */
 std::vector<std::vector<std::string>> TrojanMap::ReadDependenciesFromCSVFile(std::string dependencies_filename){
   std::vector<std::vector<std::string>> dependencies_from_csv;
+  std::fstream fin;
+  fin.open(dependencies_filename,std::ios::in);
+  std::string line, word;
+  getline(fin,line);
+  while(getline(fin,line)){
+    std::stringstream s(line);
+    std::vector<std::string> temp;
+    while(getline(s,word,',')){
+      temp.push_back(word);
+    }
+    dependencies_from_csv.push_back(temp);
+  }
   return dependencies_from_csv;
 }
 
@@ -1105,8 +1126,44 @@ std::vector<std::vector<std::string>> TrojanMap::ReadDependenciesFromCSVFile(std
 std::vector<std::string> TrojanMap::DeliveringTrojan(std::vector<std::string> &locations,
                                                      std::vector<std::vector<std::string>> &dependencies){
   std::vector<std::string> result;
+  // 记录每个location的下一个节点列表
+  std::unordered_map<std::string, std::vector<std::string>> outgoing_nodes;
+  // 每个location的入度
+  std::unordered_map<std::string, int> degree;
+  // 计算入度和outgoing_nodes
+
+
+  for(int i = 0; i < dependencies.size(); i++) {
+    outgoing_nodes[dependencies[i][0]].push_back(dependencies[i][1]);
+    degree[dependencies[i][1]]++;
+  }
+  // 将入度为0的点加入result
+  for(int i = 0; i < locations.size(); i++) {
+    if(degree.find(locations[i]) == degree.end()) result.push_back(locations[i]);
+  }
+  int start = 0, end = result.size();
+  while(result.size() < locations.size()) {
+    // 从当前入度为0的点找到下一组入度为0的点
+    while(start < end) {
+      std::vector<std::string> nodes = outgoing_nodes[result[start]];
+      for(int i = 0; i < nodes.size(); i++) {
+        degree[nodes[i]]--;
+        if(degree[nodes[i]] == 0) {
+          result.push_back(nodes[i]);
+          degree.erase(nodes[i]);
+        }
+      }
+      start++;
+    }
+    // 新加入result的节点的index范围
+    start = end;
+    end = result.size();
+  }
   return result;                                                     
 }
+
+
+
 
 
 
@@ -1120,6 +1177,52 @@ std::vector<std::string> TrojanMap::DeliveringTrojan(std::vector<std::string> &l
  * @param {std::vector<double>} square: four vertexes of the square area
  * @return {bool}: whether there is a cycle or not
  */
+void dfs(std::map<std::string,Node>& data, std::string curId,std::unordered_map<std::string,int>&visited,std::unordered_map<std::string,std::string>& prev,std::vector<std::string>& cycle){
+  visited[curId] = 1;
+  for (std::string nextId : data[curId].neighbors){
+    if (cycle.size()>0){
+      return;
+    }
+    if (visited.find(nextId) == visited.end()){
+      continue;
+    }
+    if (visited[nextId] == 0){
+      prev[nextId] = curId;
+      dfs(data,nextId,visited,prev,cycle);
+    } else if (visited[nextId]==1 && nextId != prev[curId]){
+      std::string temp =curId;
+      while(temp!=nextId){
+        cycle.push_back(temp);
+        temp=prev[temp];
+      }
+      cycle.push_back(temp);
+      return;
+    }
+  }
+  visited[curId] = 2;
+}
+
 bool TrojanMap::CycleDetection(std::vector<double> &square) {
+  std::unordered_map<std::string,int> visited;
+  std::vector<std::string> cycle;
+  std::unordered_map<std::string,std::string> prev;
+  for(auto it = data.begin();it!=data.end();it++)
+  {
+    if(it->second.lon >= square[0] && it->second.lon <= square[1] && it->second.lat<=square[2] && it->second.lat>=square[3])   //如果在范围内，则将满足条件的node存入visited
+    {
+      visited[it->first] = 0;           //visited[id]一开始都是0
+    }
+  }
+  for(auto it1 = visited.begin();it1!=visited.end();it1++){
+    if (visited[it1->first] == 0){
+      dfs(data,it1->first,visited,prev,cycle);
+      if(cycle.size()>0)
+      {
+        PlotPointsandEdges(cycle,square);
+        return true;
+      }
+    }
+  }
+  
   return false;
 }
