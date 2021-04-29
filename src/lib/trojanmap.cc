@@ -45,10 +45,11 @@ void TrojanMap::PrintMenu() {
       "* 1. Autocomplete                                             \n"
       "* 2. Find the position                                        \n"
       "* 3. CalculateShortestPath                                    \n"
-      "* 4. Travelling salesman problem                              \n"
-      "* 5. Cycle Detection                                          \n"
-      "* 6. Topological Sort                                         \n"
-      "* 7. Exit                                                     \n"
+      "* 4. Travelling salesman problem - Brute Force                \n"
+      "* 5. Travelling salesman problem - 2Opt                       \n"
+      "* 6. Cycle Detection                                          \n"
+      "* 7. Topological Sort                                         \n"
+      "* 8. Exit                                                     \n"
       "**************************************************************\n";
   std::cout << menu << std::endl;
   std::string input;
@@ -116,9 +117,19 @@ void TrojanMap::PrintMenu() {
   {
     menu =
         "**************************************************************\n"
-        "* 3. CalculateShortestPath                                    \n"
+        "* 3. CalculateShortestPath                                            "
+        "      \n"
         "**************************************************************\n";
     std::cout << menu << std::endl;
+    std::cout << "If you select bellman-ford please expect around 4 minute runtime\n" << std::endl;
+    menu = "Please select function: 1 = dijkstra, 2 = bellman-ford: ";
+    std::cout << menu;
+    getline(std::cin, input);
+    int selFtn = std::stoi(input);
+    if(selFtn < 1 || selFtn > 2) {
+      std::cout << "Invalid input\n";
+      break;
+    }
     menu = "Please input the start location:";
     std::cout << menu;
     std::string input1;
@@ -127,34 +138,46 @@ void TrojanMap::PrintMenu() {
     std::cout << menu;
     std::string input2;
     getline(std::cin, input2);
-    auto start = std::chrono::high_resolution_clock::now();
-    auto results = CalculateShortestPath_Dijkstra(input1, input2);
-    
-    //you can uncomment it to test Bellman. It will take 3-5 min to show the result!!!!!!!!!
-    //auto results = CalculateShortestPath_Bellman_Ford(input1, input2);  
+    //used to calculate the time of the function
+    auto start = std::chrono::high_resolution_clock::now(); 
+    std::vector<std::string> results;
+    if(selFtn == 1) {
+      results = CalculateShortestPath_Dijkstra(input1, input2);
+    }
+    else {
+      results = CalculateShortestPath_Bellman_Ford(input1, input2);
+    }
     auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start); 
+
     menu = "*************************Results******************************\n";
     std::cout << menu;
-    if (results.size() != 0) {
-      for (auto x : results) std::cout << x << std::endl;
-      std::cout << "The distance of the path is:" << CalculatePathLength(results) << " miles" << std::endl;
+    if (results.size() != 0)
+    {
+      for (auto x : results)
+        std::cout << x << std::endl;
+        std::cout << "The distance of the path is:" << CalculatePathLength(results) << " miles" << std::endl;
       PlotPath(results);
-    } else {
+    }
+      
+    else
+    {
       std::cout << "No route from the start point to the destination."
                 << std::endl;
     }
+          std::cout << "Time taken by function: " << duration.count() << " milliseconds" << std::endl;
+
     menu = "**************************************************************\n";
-    std::cout << menu;
-    std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl << std::endl;
+    std::cout << menu << std::endl;
     PrintMenu();
     break;
   }
+
   case '4':
   {
     menu =
         "**************************************************************\n"
-        "* 4. Travelling salesman problem                              \n"
+        "* 4. Travelling salesman problem - Brute Force                \n"
         "**************************************************************\n";
     std::cout << menu << std::endl;
     menu = "In this task, we will select N random points on the map and you need to find the path to travel these points and back to the start point.";
@@ -197,11 +220,59 @@ void TrojanMap::PrintMenu() {
     PrintMenu();
     break;
   }
-  case '5':
+
+case '5':
   {
     menu =
         "**************************************************************\n"
-        "* 5. Cycle Detection                                          \n"
+        "* 5. Travelling salesman problem - 2Opt                       \n"
+        "**************************************************************\n";
+    std::cout << menu << std::endl;
+    menu = "In this task, we will select N random points on the map and you need to find the path to travel these points and back to the start point.";
+    std::cout << menu << std::endl << std::endl;
+    menu = "Please input the number of the places:";
+    std::cout << menu;
+    getline(std::cin, input);
+    int num = std::stoi(input);
+    std::vector<std::string> keys;
+    for (auto x : data) {
+      keys.push_back(x.first);
+    }
+    std::vector<std::string> locations;
+    srand(time(NULL));
+    for (int i = 0; i < num; i++)
+      locations.push_back(keys[rand() % keys.size()]);
+    PlotPoints(locations);
+    std::cout << "Calculating ..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto results = TravellingTrojan_2opt(locations);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    CreateAnimation(results.second);
+    menu = "*************************Results******************************\n";
+    std::cout << menu;
+    if (results.second.size() != 0) {
+      for (auto x : results.second[results.second.size()-1]) std::cout << x << std::endl;
+      menu = "**************************************************************\n";
+      std::cout << menu;
+      std::cout << "The distance of the path is:" << results.first << " miles" << std::endl;
+      PlotPath(results.second[results.second.size()-1]);
+    } else {
+      std::cout << "The size of the path is 0" << std::endl;
+    }
+    menu = "**************************************************************\n"
+           "You could find your animation at src/lib/output.avi.          \n";
+    std::cout << menu;
+    std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl << std::endl;
+    PrintMenu();
+    break;
+  }
+
+  case '6':
+  {
+    menu =
+        "**************************************************************\n"
+        "* 6. Cycle Detection                                          \n"
         "**************************************************************\n";
     std::cout << menu << std::endl;
     menu = "Please input the left bound longitude(between -118.299 and -118.264):";
@@ -241,18 +312,18 @@ void TrojanMap::PrintMenu() {
     PrintMenu();
     break;
   }
-  case '6':
+  case '7':
   {
     menu =
         "**************************************************************\n"
-        "* 6. Topological Sort                                         \n"
+        "* 7. Topological Sort                                         \n"
         "**************************************************************\n";
     std::cout << menu << std::endl;
-    menu = "Please input the locations filename:";
+    menu = "Please input the locations filename: （type any random letter to access our file)";
     std::cout << menu;
     std::string locations_filename;
     getline(std::cin, locations_filename);
-    menu = "Please input the dependencies filename:";
+    menu = "Please input the dependencies filename: (type any random letter to access our file)";
     std::cout << menu;
     std::string dependencies_filename;
     getline(std::cin, dependencies_filename);
@@ -293,11 +364,11 @@ void TrojanMap::PrintMenu() {
     PrintMenu();
     break;
   }
-  case '7':
+  case '8':
     break;
   default:
   {
-    std::cout << "Please select 1 - 7." << std::endl;
+    std::cout << "Please select 1 - 8." << std::endl;
     PrintMenu();
     break;
   }
@@ -813,7 +884,7 @@ std::unordered_set<int> visited;
 std::vector<double> d(weight.size());
 bool uncheck = false;   //initialize bool value,判断source node到任意一个node存不存在path
 std::vector<int> path;  //按dest到source顺序存最短路径的node
-  std::cout<<"weight size is"<<weight.size()<<std::endl;
+  //std::cout<<"weight size is"<<weight.size()<<std::endl;
 for(int i=0;i<weight.size();i++)
   {    
   d[i] = weight[temp_index[n1.id]][i];  //source node到每个node的distance。此处，和source不相邻的node的weight=max
@@ -822,7 +893,6 @@ for(int i=0;i<weight.size();i++)
 visited.insert(temp_index[n1.id]);  
 while(visited.size()<weight.size() && !uncheck && visited.find(temp_index[n2.id])==visited.end())
   {
-  
     uncheck = true;
     //访问unvisited的node，比较source到每个node的距离，找到最短距离的node
     int min_node = FindMinInDButNotInVisited(d,visited,uncheck);  
@@ -1132,6 +1202,12 @@ std::vector<std::string> TrojanMap::DeliveringTrojan(std::vector<std::string> &l
   std::unordered_map<std::string, int> degree;
   // 计算入度和outgoing_nodes
 
+std::string s1 = "/Users/chongkunlin/Desktop/USC_Courses/EE599/final-project-ChongkunLin/input/topologicalsort_dependencies.csv";
+std::string s2 = "/Users/chongkunlin/Desktop/USC_Courses/EE599/final-project-ChongkunLin/input/topologicalsort_locations.csv";
+if(locations.empty() || dependencies.empty())
+{
+locations = ReadLocationsFromCSVFile(s2);
+dependencies = ReadDependenciesFromCSVFile(s1);}
 
   for(int i = 0; i < dependencies.size(); i++) {
     outgoing_nodes[dependencies[i][0]].push_back(dependencies[i][1]);
@@ -1206,6 +1282,7 @@ bool TrojanMap::CycleDetection(std::vector<double> &square) {
   std::unordered_map<std::string,int> visited;
   std::vector<std::string> cycle;
   std::unordered_map<std::string,std::string> prev;
+  
   for(auto it = data.begin();it!=data.end();it++)
   {
     if(it->second.lon >= square[0] && it->second.lon <= square[1] && it->second.lat<=square[2] && it->second.lat>=square[3])   //如果在范围内，则将满足条件的node存入visited
