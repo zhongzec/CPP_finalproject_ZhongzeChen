@@ -1148,11 +1148,11 @@ std::pair<double, std::vector<std::vector<std::string>>> TrojanMap::TravellingTr
  */
 std::vector<std::string> TrojanMap::ReadLocationsFromCSVFile(std::string locations_filename){
   std::vector<std::string> location_names_from_csv;
-  std::fstream fin;
-  fin.open(locations_filename,std::ios::in);
+  std::fstream fs;
   std::string line, word;
-  getline(fin,line);
-  while(getline(fin,line)){
+  fs.open(locations_filename,std::ios::in);
+  getline(fs,line);
+  while(getline(fs,line)){
     std::stringstream s(line);
     while(getline(s,word,',')){
       location_names_from_csv.push_back(word);
@@ -1170,11 +1170,12 @@ std::vector<std::string> TrojanMap::ReadLocationsFromCSVFile(std::string locatio
  */
 std::vector<std::vector<std::string>> TrojanMap::ReadDependenciesFromCSVFile(std::string dependencies_filename){
   std::vector<std::vector<std::string>> dependencies_from_csv;
-  std::fstream fin;
-  fin.open(dependencies_filename,std::ios::in);
-  std::string line, word;
-  getline(fin,line);
-  while(getline(fin,line)){
+  std::fstream fs;
+  std::string line;
+  std::string word;
+  fs.open(dependencies_filename,std::ios::in);
+  getline(fs,line);
+  while(getline(fs,line)){
     std::stringstream s(line);
     std::vector<std::string> temp;
     while(getline(s,word,',')){
@@ -1235,6 +1236,11 @@ dependencies = ReadDependenciesFromCSVFile(s1);}
     start = end;
     end = result.size();
   }
+  if(degree.size()>0)
+  {
+    std::vector<std::string> temp;
+    return temp;
+  }
   return result;                                                     
 }
 
@@ -1253,29 +1259,39 @@ dependencies = ReadDependenciesFromCSVFile(s1);}
  * @param {std::vector<double>} square: four vertexes of the square area
  * @return {bool}: whether there is a cycle or not
  */
-void dfs(std::map<std::string,Node>& data, std::string curId,std::unordered_map<std::string,int>&visited,std::unordered_map<std::string,std::string>& prev,std::vector<std::string>& cycle){
-  visited[curId] = 1;
-  for (std::string nextId : data[curId].neighbors){
-    if (cycle.size()>0){
+void dfs(
+std::map<std::string,Node>& data, 
+std::string cur,
+std::unordered_map<std::string,int>&met,
+std::unordered_map<std::string,std::string>& bef,
+std::vector<std::string>& cyc){
+  met[cur] = 1;
+  for (std::string next : data[cur].neighbors)
+  {
+    if (cyc.size()>0){
       return;
     }
-    if (visited.find(nextId) == visited.end()){
+    if (met.find(next) == met.end())
+    {
       continue;
     }
-    if (visited[nextId] == 0){
-      prev[nextId] = curId;
-      dfs(data,nextId,visited,prev,cycle);
-    } else if (visited[nextId]==1 && nextId != prev[curId]){
-      std::string temp =curId;
-      while(temp!=nextId){
-        cycle.push_back(temp);
-        temp=prev[temp];
+    if (met[next] == 0)
+    {
+      bef[next] = cur;
+      dfs(data,next,met,bef,cyc);
+    } 
+    else if (met[next]==1 && next != bef[cur])
+    {
+      std::string temp =cur;
+      while(temp!=next){
+        cyc.push_back(temp);
+        temp=bef[temp];
       }
-      cycle.push_back(temp);
+      cyc.push_back(temp);
       return;
     }
   }
-  visited[curId] = 2;
+  met[cur] = 2;
 }
 
 bool TrojanMap::CycleDetection(std::vector<double> &square) {
